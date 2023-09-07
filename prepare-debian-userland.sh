@@ -147,6 +147,18 @@ install_packages()
 	done
 }
 
+# just openssl for now 
+install_legacy_openssl()
+{
+	for p in $(ls ./legacy-ssl); do
+	      cp ./legacy-ssl/$p ${chroot_path}/tmp
+	      chroot ${chroot_path} /bin/bash -c  "cd /tmp && dpkg-deb -x /tmp/$p ."
+	      chroot ${chroot_path} /bin/bash -c  "cp -rp /tmp/lib/x86_64-linux-gnu/* /lib/x86_64-linux-gnu/"
+	      chroot ${chroot_path} /bin/bash -c  "cp -rp /tmp/usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/"
+	done
+
+}
+
 fix_ld_path()
 {
 	(cd ${chroot_path}/lib64 && \
@@ -224,6 +236,7 @@ install_chroot_base()
 	set_timezone
 	debian_start
 	install_apt_packages
+	install_legacy_openssl
 	rm "${chroot_path}"/etc/resolv.conf # Will this be sufficient?
 	# symlink_icons
 	# symlink_themes
@@ -301,6 +314,10 @@ while [ $# -gt 0 ]; do
                 image) 
                         image
  			exit 0
+			;;
+		legacy)
+			install_legacy_openssl
+			exit 0;
 			;;
 		*)
 			usage
